@@ -1,4 +1,5 @@
 import { Link, NavLink, Outlet, useParams } from "react-router";
+import { mockTrip } from "../lib/mockTrip";
 
 function getTripNavigationClassName({
   isActive,
@@ -23,7 +24,7 @@ export function TripDashboardPage() {
           ← All trips
         </Link>
 
-        <h1>Demo Trip</h1>
+        <h1>{mockTrip.name}</h1>
         <p>Trip ID: {tripId}</p>
       </header>
 
