@@ -1,0 +1,135 @@
+.app-shell {
+  min-height: 100vh;
+}
+
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  border-bottom: 1px solid #e2e8f0;
+  background: rgba(248, 250, 252, 0.95);
+  backdrop-filter: blur(10px);
+}
+
+.app-header__content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: min(100% - 2rem, 72rem);
+  min-height: 4rem;
+  margin-inline: auto;
+}
+
+.app-brand {
+  font-size: 1.125rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.app-navigation {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.app-navigation__link {
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  color: #475569;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.app-navigation__link:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+.app-navigation__link--active {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.page-container {
+  width: min(100% - 2rem, 72rem);
+  margin-inline: auto;
+  padding-block: 2rem;
+}
+
+.trip-shell {
+  min-height: calc(100vh - 4rem);
+  padding-bottom: 5rem;
+}
+
+.trip-header {
+  margin-bottom: 1.5rem;
+}
+
+.trip-header__back-link {
+  display: inline-block;
+  margin-bottom: 0.75rem;
+  color: #2563eb;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.trip-header__back-link:hover {
+  text-decoration: underline;
+}
+
+.trip-navigation {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 20;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  border-top: 1px solid #e2e8f0;
+  background: #ffffff;
+}
+
+.trip-navigation__link {
+  padding: 1rem 0.5rem;
+  color: #64748b;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-align: center;
+  text-decoration: none;
+}
+
+.trip-navigation__link--active {
+  color: #2563eb;
+  background: #eff6ff;
+}
+
+@media (max-width: 40rem) {
+  .app-navigation__link:first-child {
+    display: none;
+  }
+
+  .page-container {
+    padding-block: 1.5rem;
+  }
+}
+
+@media (min-width: 48rem) {
+  .trip-shell {
+    padding-bottom: 2rem;
+  }
+
+  .trip-navigation {
+    position: static;
+    display: flex;
+    width: fit-content;
+    margin-bottom: 2rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.75rem;
+    overflow: hidden;
+  }
+
+  .trip-navigation__link {
+    min-width: 8rem;
+    padding: 0.75rem 1rem;
+  }
+}
