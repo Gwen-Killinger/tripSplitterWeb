@@ -31,3 +31,13 @@ export type CalculatedSplit = {
   memberId: string;
   shareCents: number;
 };
+
+export type MemberBalance = {
+  memberId: string;
+
+  paidCents: number;
+
+  owedCents: number;
+
+  balanceCents: number;
+};
