@@ -26,3 +26,8 @@ export type Trip = {
   members: TripMember[];
   expenses: Expense[];
 };
+
+export type CalculatedSplit = {
+  memberId: string;
+  shareCents: number;
+};

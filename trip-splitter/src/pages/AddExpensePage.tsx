@@ -2,24 +2,35 @@ import { useNavigate, useParams } from "react-router";
 import { ExpenseForm } from "../features/expenses/components/ExpenseForm";
 import type { ExpenseFormValues } from "../features/expenses/types";
 import { mockTrip } from "../lib/mockTrip";
+import { calculateEqualSplits } from "../domain/calculateEqualSplits";
 
 export function AddExpensePage() {
   const navigate = useNavigate();
   const { tripId } = useParams();
 
-  function handleSubmit(
+    function handleSubmit(
     values: ExpenseFormValues,
     amountCents: number,
-  ) {
+    ) {
+    const splits = calculateEqualSplits(
+        amountCents,
+        values.participantMemberIds,
+    );
+
     const newExpense = {
-      ...values,
-      amountCents,
+        description: values.description,
+        amountCents,
+        expenseDate: values.expenseDate,
+        paidByMemberId: values.paidByMemberId,
+        participantMemberIds: values.participantMemberIds,
+        splits,
+        notes: values.notes || undefined,
     };
 
     console.log("New expense:", newExpense);
 
     navigate(`/trips/${tripId}`);
-  }
+    }
 
   return (
     <section className="form-page">
