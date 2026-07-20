@@ -1,11 +1,13 @@
 import { calculateBalances } from "../domain/calculateBalances";
+import { useTripOutlet } from "../features/trips/hooks/useTripOutlet";
 import { formatCurrency } from "../lib/currency";
-import { mockTrip } from "../lib/mockTrip";
 
 export function TripBalancesPage() {
+  const { trip } = useTripOutlet();
+
   const balances = calculateBalances(
-    mockTrip.members,
-    mockTrip.expenses,
+    trip.members,
+    trip.expenses,
   );
 
   return (
@@ -14,8 +16,9 @@ export function TripBalancesPage() {
 
       <div className="expense-list">
         {balances.map((balance) => {
-          const member = mockTrip.members.find(
-            (m) => m.id === balance.memberId,
+          const member = trip.members.find(
+            (candidate) =>
+              candidate.id === balance.memberId,
           );
 
           return (
@@ -25,25 +28,30 @@ export function TripBalancesPage() {
             >
               <div className="expense-card__content">
                 <div>
-                  <h3>{member?.displayName}</h3>
+                  <h3>{member?.displayName ?? "Unknown member"}</h3>
 
                   <p>
                     Paid{" "}
-                    {formatCurrency(balance.paidCents)}
+                    {formatCurrency(
+                      balance.paidCents,
+                      trip.currencyCode,
+                    )}
                   </p>
 
                   <p>
                     Owes{" "}
-                    {formatCurrency(balance.owedCents)}
+                    {formatCurrency(
+                      balance.owedCents,
+                      trip.currencyCode,
+                    )}
                   </p>
                 </div>
 
                 <strong>
-                  {balance.balanceCents >= 0
-                    ? "+"
-                    : "-"}
+                  {balance.balanceCents >= 0 ? "+" : "−"}
                   {formatCurrency(
                     Math.abs(balance.balanceCents),
+                    trip.currencyCode,
                   )}
                 </strong>
               </div>

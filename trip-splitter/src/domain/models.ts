@@ -41,3 +41,9 @@ export type MemberBalance = {
 
   balanceCents: number;
 };
+
+export type Settlement = {
+  fromMemberId: string;
+  toMemberId: string;
+  amountCents: number;
+};

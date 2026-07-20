@@ -1,5 +1,10 @@
-import { Link, NavLink, Outlet, useParams } from "react-router";
-import { mockTrip } from "../lib/mockTrip";
+import {
+  Link,
+  NavLink,
+  Outlet,
+  useParams,
+} from "react-router";
+import { useTrip } from "../features/trips/hooks/useTrip";
 
 function getTripNavigationClassName({
   isActive,
@@ -16,6 +21,31 @@ function getTripNavigationClassName({
 
 export function TripDashboardPage() {
   const { tripId } = useParams();
+  const { trip, isLoading, error } = useTrip(tripId);
+
+  if (isLoading) {
+    return <p>Loading trip...</p>;
+  }
+
+  if (error) {
+    return (
+      <section>
+        <h1>Unable to load trip</h1>
+        <p>{error}</p>
+        <Link to="/trips">Return to trips</Link>
+      </section>
+    );
+  }
+
+  if (!trip) {
+    return (
+      <section>
+        <h1>Trip not found</h1>
+        <p>This trip may not exist or may have been removed.</p>
+        <Link to="/trips">Return to trips</Link>
+      </section>
+    );
+  }
 
   return (
     <div className="trip-shell">
@@ -24,35 +54,38 @@ export function TripDashboardPage() {
           ← All trips
         </Link>
 
-        <h1>{mockTrip.name}</h1>
-        <p>Trip ID: {tripId}</p>
+        <h1>{trip.name}</h1>
+        <p>Trip ID: {trip.id}</p>
       </header>
 
-      <nav className="trip-navigation" aria-label="Trip navigation">
+      <nav
+        className="trip-navigation"
+        aria-label="Trip navigation"
+      >
         <NavLink
           className={getTripNavigationClassName}
           end
-          to={`/trips/${tripId}`}
+          to={`/trips/${trip.id}`}
         >
           Expenses
         </NavLink>
 
         <NavLink
           className={getTripNavigationClassName}
-          to={`/trips/${tripId}/balances`}
+          to={`/trips/${trip.id}/balances`}
         >
           Balances
         </NavLink>
 
         <NavLink
           className={getTripNavigationClassName}
-          to={`/trips/${tripId}/settle`}
+          to={`/trips/${trip.id}/settle`}
         >
           Settle Up
         </NavLink>
       </nav>
 
-      <Outlet />
+      <Outlet context={{ trip }} />
     </div>
   );
 }

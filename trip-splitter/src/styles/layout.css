@@ -517,4 +517,60 @@
     width: 100%;
   }
 }
+.settlement-list {
+  display: grid;
+  gap: 1rem;
+}
+
+.settlement-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.875rem;
+  background: #ffffff;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+}
+
+.settlement-card__direction {
+  color: #64748b;
+}
+
+.settlement-card__amount {
+  color: #0f172a;
+  font-size: 1.125rem;
+  white-space: nowrap;
+}
+
+.empty-state {
+  padding: 3rem 1.5rem;
+  border: 1px dashed #cbd5e1;
+  border-radius: 0.875rem;
+  background: #ffffff;
+  text-align: center;
+}
+
+.empty-state__icon {
+  display: block;
+  margin-bottom: 1rem;
+  font-size: 2rem;
+}
+
+.empty-state h3 {
+  margin-bottom: 0.5rem;
+}
+
+.empty-state p {
+  margin-bottom: 0;
+  color: #64748b;
+}
+
+@media (max-width: 32rem) {
+  .settlement-card {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
 }

@@ -1,12 +1,12 @@
-import { Link, useParams } from "react-router";
+import { Link } from "react-router";
 import { ExpenseCard } from "../features/expenses/components/ExpenseCard";
+import { useTripOutlet } from "../features/trips/hooks/useTripOutlet";
 import { formatCurrency } from "../lib/currency";
-import { mockTrip } from "../lib/mockTrip";
 
 export function TripExpensesPage() {
-  const { tripId } = useParams();
+  const { trip } = useTripOutlet();
 
-  const totalCents = mockTrip.expenses.reduce(
+  const totalCents = trip.expenses.reduce(
     (total, expense) => total + expense.amountCents,
     0,
   );
@@ -16,27 +16,28 @@ export function TripExpensesPage() {
       <div className="section-heading">
         <div>
           <h2>Expenses</h2>
+
           <p className="section-heading__subtitle">
-            {mockTrip.expenses.length} expenses ·{" "}
-            {formatCurrency(totalCents, mockTrip.currencyCode)} total
+            {trip.expenses.length} expenses ·{" "}
+            {formatCurrency(totalCents, trip.currencyCode)} total
           </p>
         </div>
 
         <Link
           className="primary-button"
-          to={`/trips/${tripId}/expenses/new`}
+          to={`/trips/${trip.id}/expenses/new`}
         >
           Add Expense
         </Link>
       </div>
 
       <div className="expense-list">
-        {mockTrip.expenses.map((expense) => (
+        {trip.expenses.map((expense) => (
           <ExpenseCard
             key={expense.id}
             expense={expense}
-            members={mockTrip.members}
-            currencyCode={mockTrip.currencyCode}
+            members={trip.members}
+            currencyCode={trip.currencyCode}
           />
         ))}
       </div>
