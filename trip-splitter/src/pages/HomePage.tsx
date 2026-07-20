@@ -1,10 +1,8 @@
-function App() {
+export function HomePage() {
   return (
-    <main>
+    <section>
       <h1>Trip Splitter</h1>
       <p>Split trip expenses without the spreadsheet headache.</p>
-    </main>
+    </section>
   );
 }
-
-export default App;
