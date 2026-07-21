@@ -1,5 +1,7 @@
-import { MockTripRepository } from "./MockTripRepository";
+import { auth } from "../firebase/auth";
+import { db } from "../firebase/firestore";
+import { FirestoreTripRepository } from "./FirestoreTripRepository";
 import type { TripRepository } from "./TripRepository";
 
 export const tripRepository: TripRepository =
-  new MockTripRepository();
+  new FirestoreTripRepository(db, auth);
