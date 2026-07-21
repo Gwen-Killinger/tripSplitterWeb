@@ -6,14 +6,15 @@ import type { ExpenseFormValues } from "../types";
 
 type ExpenseFormProps = {
   members: TripMember[];
+  initialValues?: ExpenseFormValues;
   isSaving: boolean;
   submitError: string | null;
+  submitLabel?: string;
   onSubmit: (
     values: ExpenseFormValues,
     amountCents: number,
   ) => void;
 };
-
 type FormErrors = Partial<Record<keyof ExpenseFormValues, string>>;
 
 function getTodayDate(): string {
@@ -22,18 +23,22 @@ function getTodayDate(): string {
 
 export function ExpenseForm({
   members,
+  initialValues,
   isSaving,
   submitError,
+  submitLabel = "Save Expense",
   onSubmit,
 }: ExpenseFormProps) {
-  const [values, setValues] = useState<ExpenseFormValues>({
-    description: "",
-    amount: "",
-    expenseDate: getTodayDate(),
-    paidByMemberId: members[0]?.id ?? "",
-    participantMemberIds: members.map((member) => member.id),
-    notes: "",
-  });
+  const [values, setValues] = useState<ExpenseFormValues>(
+    initialValues ?? {
+      description: "",
+      amount: "",
+      expenseDate: getTodayDate(),
+      paidByMemberId: members[0]?.id ?? "",
+      participantMemberIds: members.map((member) => member.id),
+      notes: "",
+    },
+  );
 
   const [errors, setErrors] = useState<FormErrors>({});
 
@@ -160,6 +165,7 @@ export function ExpenseForm({
               type="text"
               inputMode="decimal"
               value={values.amount}
+              disabled={isSaving}
               onChange={(event) =>
                 updateField("amount", event.target.value)
               }
@@ -186,6 +192,7 @@ export function ExpenseForm({
             name="expenseDate"
             type="date"
             value={values.expenseDate}
+            disabled={isSaving}
             onChange={(event) =>
               updateField("expenseDate", event.target.value)
             }
@@ -296,7 +303,7 @@ export function ExpenseForm({
           type="submit"
           disabled={isSaving}
         >
-          {isSaving ? "Saving..." : "Save Expense"}
+          {isSaving ? "Saving..." : submitLabel}
         </button>
       </div>
     </form>

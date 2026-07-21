@@ -9,6 +9,7 @@ import { TripExpensesPage } from "../pages/TripExpensesPage";
 import { TripsPage } from "../pages/TripsPage";
 import { TripSettlementPage } from "../pages/TripSettlementPage";
 import { AddExpensePage } from "../pages/AddExpensePage";
+import { EditExpensePage } from "../pages/EditExpensePage";
 
 export const router = createBrowserRouter([
   {
@@ -30,6 +31,10 @@ export const router = createBrowserRouter([
       {
         path: "trips/:tripId/expenses/new",
         element: <AddExpensePage />,
+      },
+      {
+        path: "trips/:tripId/expenses/:expenseId/edit",
+        element: <EditExpensePage />,
       },
       {
         path: "trips/:tripId",

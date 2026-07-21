@@ -1,4 +1,4 @@
-import { Link } from "react-router";
+import { Link, useNavigate} from "react-router";
 import { ExpenseCard } from "../features/expenses/components/ExpenseCard";
 import { useTripOutlet } from "../features/trips/hooks/useTripOutlet";
 import { formatCurrency } from "../lib/currency";
@@ -6,6 +6,7 @@ import { tripRepository } from "../repositories/repositoryInstance";
 
 export function TripExpensesPage() {
   const { trip, reload } = useTripOutlet();
+  const navigate = useNavigate();
 
   async function handleDelete(
     expenseId: string,
@@ -62,6 +63,9 @@ export function TripExpensesPage() {
             expense={expense}
             members={trip.members}
             currencyCode={trip.currencyCode}
+            onEdit={() =>
+              navigate(`/trips/${trip.id}/expenses/${expense.id}/edit`)
+            }
             onDelete={() => {
               void handleDelete(expense.id);
             }}

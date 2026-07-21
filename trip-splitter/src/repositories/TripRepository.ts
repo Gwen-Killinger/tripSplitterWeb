@@ -6,6 +6,7 @@ export type CreateTripInput = {
 };
 
 export type AddExpenseInput = Omit<Expense, "id">;
+export type UpdateExpenseInput = AddExpenseInput;
 
 export interface TripRepository {
   getTrip(tripId: string): Promise<Trip | null>;
@@ -17,6 +18,12 @@ export interface TripRepository {
   addExpense(
     tripId: string,
     input: AddExpenseInput,
+  ): Promise<Expense>;
+
+  updateExpense(
+    tripId: string,
+    expenseId: string,
+    input: UpdateExpenseInput,
   ): Promise<Expense>;
 
   deleteExpense(

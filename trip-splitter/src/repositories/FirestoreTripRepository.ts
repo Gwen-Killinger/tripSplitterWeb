@@ -8,6 +8,7 @@ import {
   serverTimestamp,
   setDoc,
   deleteDoc,
+  updateDoc,
   type Firestore,
 } from "firebase/firestore";
 import type {
@@ -20,6 +21,7 @@ import type {
   AddExpenseInput,
   CreateTripInput,
   TripRepository,
+  UpdateExpenseInput,
 } from "./TripRepository";
 
 export class FirestoreTripRepository
@@ -182,6 +184,49 @@ export class FirestoreTripRepository
 
     return {
       id: expenseRef.id,
+      description: input.description,
+      amountCents: input.amountCents,
+      expenseDate: input.expenseDate,
+      paidByMemberId: input.paidByMemberId,
+      participantMemberIds: input.participantMemberIds,
+      splits: input.splits,
+      notes: input.notes,
+    };
+  }
+
+async updateExpense(
+    tripId: string,
+    expenseId: string,
+    input: UpdateExpenseInput,
+  ): Promise<Expense> {
+    const currentUser = this.auth.currentUser;
+
+    if (currentUser === null) {
+      throw new Error("User is not authenticated.");
+    }
+
+    const expenseRef = doc(
+      this.db,
+      "trips",
+      tripId,
+      "expenses",
+      expenseId,
+    );
+
+    await updateDoc(expenseRef, {
+      description: input.description,
+      amountCents: input.amountCents,
+      expenseDate: input.expenseDate,
+      paidByMemberId: input.paidByMemberId,
+      participantMemberIds: input.participantMemberIds,
+      splits: input.splits,
+      notes: input.notes ?? "",
+      updatedByUserId: currentUser.uid,
+      updatedAt: serverTimestamp(),
+    });
+
+    return {
+      id: expenseId,
       description: input.description,
       amountCents: input.amountCents,
       expenseDate: input.expenseDate,
