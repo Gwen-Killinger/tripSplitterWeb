@@ -6,7 +6,12 @@ import type { ExpenseFormValues } from "../types";
 
 type ExpenseFormProps = {
   members: TripMember[];
-  onSubmit: (values: ExpenseFormValues, amountCents: number) => void;
+  isSaving: boolean;
+  submitError: string | null;
+  onSubmit: (
+    values: ExpenseFormValues,
+    amountCents: number,
+  ) => void;
 };
 
 type FormErrors = Partial<Record<keyof ExpenseFormValues, string>>;
@@ -17,6 +22,8 @@ function getTodayDate(): string {
 
 export function ExpenseForm({
   members,
+  isSaving,
+  submitError,
   onSubmit,
 }: ExpenseFormProps) {
   const [values, setValues] = useState<ExpenseFormValues>({
@@ -122,6 +129,7 @@ export function ExpenseForm({
           name="description"
           type="text"
           value={values.description}
+          disabled={isSaving}
           onChange={(event) =>
             updateField("description", event.target.value)
           }
@@ -202,6 +210,7 @@ export function ExpenseForm({
           id="paidByMemberId"
           name="paidByMemberId"
           value={values.paidByMemberId}
+          disabled={isSaving}
           onChange={(event) =>
             updateField("paidByMemberId", event.target.value)
           }
@@ -240,6 +249,7 @@ export function ExpenseForm({
                 <input
                   type="checkbox"
                   checked={isSelected}
+                  disabled={isSaving}
                   onChange={() => toggleParticipant(member.id)}
                 />
 
@@ -266,6 +276,7 @@ export function ExpenseForm({
           name="notes"
           rows={4}
           value={values.notes}
+          disabled={isSaving}
           onChange={(event) =>
             updateField("notes", event.target.value)
           }
@@ -273,9 +284,19 @@ export function ExpenseForm({
         />
       </div>
 
+      {submitError !== null && (
+        <p className="form-error" role="alert">
+          {submitError}
+        </p>
+      )}
+
       <div className="form-actions">
-        <button className="primary-button" type="submit">
-          Save Expense
+        <button
+          className="primary-button"
+          type="submit"
+          disabled={isSaving}
+        >
+          {isSaving ? "Saving..." : "Save Expense"}
         </button>
       </div>
     </form>

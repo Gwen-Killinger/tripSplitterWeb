@@ -58,4 +58,19 @@ export class MockTripRepository implements TripRepository {
 
     return structuredClone(expense);
   }
+
+  async deleteExpense(
+    tripId: string,
+    expenseId: string,
+  ): Promise<void> {
+    const trip = this.trips.get(tripId);
+
+    if (!trip) {
+      throw new Error("Trip not found.");
+    }
+
+    trip.expenses = trip.expenses.filter(
+      (expense) => expense.id !== expenseId,
+    );
+  }
 }

@@ -18,4 +18,9 @@ export interface TripRepository {
     tripId: string,
     input: AddExpenseInput,
   ): Promise<Expense>;
+
+  deleteExpense(
+    tripId: string,
+    expenseId: string,
+  ): Promise<void>;
 }

@@ -21,7 +21,7 @@ function getTripNavigationClassName({
 
 export function TripDashboardPage() {
   const { tripId } = useParams();
-  const { trip, isLoading, error } = useTrip(tripId);
+  const { trip, isLoading, error, reload } = useTrip(tripId);
 
   if (isLoading) {
     return <p>Loading trip...</p>;
@@ -85,7 +85,7 @@ export function TripDashboardPage() {
         </NavLink>
       </nav>
 
-      <Outlet context={{ trip }} />
+      <Outlet context={{ trip, reload }} />
     </div>
   );
 }

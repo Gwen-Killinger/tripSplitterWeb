@@ -5,12 +5,14 @@ type ExpenseCardProps = {
   expense: Expense;
   members: TripMember[];
   currencyCode: string;
+  onDelete: () => void;
 };
 
 export function ExpenseCard({
   expense,
   members,
   currencyCode,
+  onDelete,
 }: ExpenseCardProps) {
   const payer = members.find(
     (member) => member.id === expense.paidByMemberId,
@@ -44,9 +46,19 @@ export function ExpenseCard({
           )}
         </div>
 
-        <strong className="expense-card__amount">
-          {formatCurrency(expense.amountCents, currencyCode)}
-        </strong>
+        <div className="expense-card__actions">
+          <strong className="expense-card__amount">
+            {formatCurrency(expense.amountCents, currencyCode)}
+          </strong>
+
+          <button
+            className="text-button"
+            type="button"
+            onClick={onDelete}
+          >
+            🗑 Delete
+          </button>
+        </div>
       </div>
     </article>
   );

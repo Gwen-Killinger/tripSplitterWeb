@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { calculateEqualSplits } from "../domain/calculateEqualSplits";
 import { ExpenseForm } from "../features/expenses/components/ExpenseForm";
@@ -9,32 +10,47 @@ export function AddExpensePage() {
   const navigate = useNavigate();
   const { tripId } = useParams();
   const { trip, isLoading, error } = useTrip(tripId);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   async function handleSubmit(
     values: ExpenseFormValues,
     amountCents: number,
   ) {
-    if (!tripId) {
+    if (!tripId || isSaving) {
       return;
     }
 
-    const splits = calculateEqualSplits(
-      amountCents,
-      values.participantMemberIds,
-    );
+    setIsSaving(true);
+    setSaveError(null);
 
-    await tripRepository.addExpense(tripId, {
-      description: values.description,
-      amountCents,
-      expenseDate: values.expenseDate,
-      paidByMemberId: values.paidByMemberId,
-      participantMemberIds:
+    try {
+      const splits = calculateEqualSplits(
+        amountCents,
         values.participantMemberIds,
-      splits,
-      notes: values.notes || undefined,
-    });
+      );
 
-    navigate(`/trips/${tripId}`);
+      await tripRepository.addExpense(tripId, {
+        description: values.description,
+        amountCents,
+        expenseDate: values.expenseDate,
+        paidByMemberId: values.paidByMemberId,
+        participantMemberIds:
+          values.participantMemberIds,
+        splits,
+        notes: values.notes || undefined,
+      });
+
+      navigate(`/trips/${tripId}`);
+    } catch (caughtError) {
+      console.error("Unable to save expense:", caughtError);
+
+      setSaveError(
+        "Unable to save the expense. Please try again.",
+      );
+    } finally {
+      setIsSaving(false);
+    }
   }
 
   if (isLoading) {
@@ -74,12 +90,14 @@ export function AddExpensePage() {
         <p>Add a shared expense to {trip.name}.</p>
       </header>
 
-      <ExpenseForm
-        members={trip.members}
-        onSubmit={(values, amountCents) => {
-          void handleSubmit(values, amountCents);
-        }}
-      />
+    <ExpenseForm
+      members={trip.members}
+      isSaving={isSaving}
+      submitError={saveError}
+      onSubmit={(values, amountCents) => {
+        void handleSubmit(values, amountCents);
+      }}
+    />
     </section>
   );
 }

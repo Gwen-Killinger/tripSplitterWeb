@@ -7,6 +7,7 @@ import {
   getDocs,
   serverTimestamp,
   setDoc,
+  deleteDoc,
   type Firestore,
 } from "firebase/firestore";
 import type {
@@ -150,9 +151,59 @@ export class FirestoreTripRepository
   }
 
   async addExpense(
-    _tripId: string,
-    _input: AddExpenseInput,
+    tripId: string,
+    input: AddExpenseInput,
   ): Promise<Expense> {
-    throw new Error("addExpense is not implemented yet.");
+    const currentUser = this.auth.currentUser;
+
+    if (currentUser === null) {
+      throw new Error("User is not authenticated.");
+    }
+
+    const expenseRef = await addDoc(
+      collection(
+        this.db,
+        "trips",
+        tripId,
+        "expenses",
+      ),
+      {
+        description: input.description,
+        amountCents: input.amountCents,
+        expenseDate: input.expenseDate,
+        paidByMemberId: input.paidByMemberId,
+        participantMemberIds: input.participantMemberIds,
+        splits: input.splits,
+        notes: input.notes ?? "",
+        createdByUserId: currentUser.uid,
+        createdAt: serverTimestamp(),
+      },
+    );
+
+    return {
+      id: expenseRef.id,
+      description: input.description,
+      amountCents: input.amountCents,
+      expenseDate: input.expenseDate,
+      paidByMemberId: input.paidByMemberId,
+      participantMemberIds: input.participantMemberIds,
+      splits: input.splits,
+      notes: input.notes,
+    };
+  }
+
+  async deleteExpense(
+    tripId: string,
+    expenseId: string,
+  ): Promise<void> {
+    await deleteDoc(
+      doc(
+        this.db,
+        "trips",
+        tripId,
+        "expenses",
+        expenseId,
+      ),
+    );
   }
 }

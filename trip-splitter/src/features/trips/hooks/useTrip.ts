@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { Trip } from "../../../domain/models";
 import { tripRepository } from "../../../repositories/repositoryInstance";
 
@@ -6,6 +6,7 @@ type UseTripResult = {
   trip: Trip | null;
   isLoading: boolean;
   error: string | null;
+  reload: () => void;
 };
 
 export function useTrip(
@@ -14,6 +15,11 @@ export function useTrip(
   const [trip, setTrip] = useState<Trip | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [reloadCount, setReloadCount] = useState(0);
+
+  const reload = useCallback(() => {
+    setReloadCount((currentCount) => currentCount + 1);
+  }, []);
 
   useEffect(() => {
     let isCancelled = false;
@@ -56,11 +62,12 @@ export function useTrip(
     return () => {
       isCancelled = true;
     };
-  }, [tripId]);
+  }, [tripId, reloadCount]);
 
   return {
     trip,
     isLoading,
     error,
+    reload,
   };
 }

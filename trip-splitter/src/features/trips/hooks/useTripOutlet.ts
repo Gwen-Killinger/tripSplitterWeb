@@ -3,6 +3,7 @@ import type { Trip } from "../../../domain/models";
 
 type TripOutletContext = {
   trip: Trip;
+  reload: () => void;
 };
 
 export function useTripOutlet(): TripOutletContext {
