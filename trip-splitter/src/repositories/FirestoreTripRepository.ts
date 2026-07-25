@@ -5,10 +5,12 @@ import {
   doc,
   getDoc,
   getDocs,
+  query,
   serverTimestamp,
   setDoc,
   deleteDoc,
   updateDoc,
+  where,
   type Firestore,
 } from "firebase/firestore";
 import type {
@@ -105,7 +107,76 @@ export class FirestoreTripRepository
   }
 
   async getTrips(): Promise<Trip[]> {
-    throw new Error("getTrips is not implemented yet.");
+    const currentUser = this.auth.currentUser;
+
+    if (currentUser === null) {
+      throw new Error("User is not authenticated.");
+    }
+
+    const tripsSnapshot = await getDocs(
+      query(
+        collection(this.db, "trips"),
+        where("ownerId", "==", currentUser.uid),
+      ),
+    );
+
+    return Promise.all(
+      tripsSnapshot.docs.map(async (tripDocument) => {
+        const membersRef = collection(
+          this.db,
+          "trips",
+          tripDocument.id,
+          "members",
+        );
+        const expensesRef = collection(
+          this.db,
+          "trips",
+          tripDocument.id,
+          "expenses",
+        );
+
+        const [membersSnapshot, expensesSnapshot] =
+          await Promise.all([
+            getDocs(membersRef),
+            getDocs(expensesRef),
+          ]);
+
+        const members: TripMember[] =
+          membersSnapshot.docs.map((memberDocument) => ({
+            id: memberDocument.id,
+            displayName:
+              memberDocument.data().displayName,
+          }));
+
+        const expenses: Expense[] =
+          expensesSnapshot.docs.map((expenseDocument) => {
+            const expenseData = expenseDocument.data();
+
+            return {
+              id: expenseDocument.id,
+              description: expenseData.description,
+              amountCents: expenseData.amountCents,
+              expenseDate: expenseData.expenseDate,
+              paidByMemberId:
+                expenseData.paidByMemberId,
+              participantMemberIds:
+                expenseData.participantMemberIds,
+              splits: expenseData.splits,
+              notes: expenseData.notes,
+            };
+          });
+
+        const tripData = tripDocument.data();
+
+        return {
+          id: tripDocument.id,
+          name: tripData.name,
+          currencyCode: tripData.currencyCode,
+          members,
+          expenses,
+        };
+      }),
+    );
   }
 
   async createTrip(

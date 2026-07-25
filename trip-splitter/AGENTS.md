@@ -379,6 +379,7 @@ Implemented:
 - Mock repository
 - Trip creation
 - Trip loading
+- Trip listing
 - Expense creation
 - Expense editing
 - Expense deletion
@@ -424,8 +425,6 @@ its existing architecture and style.
 
 These are known project limitations, not bugs for every task.
 
-- FirestoreTripRepository.getTrips() is not implemented.
-- TripsPage is currently a placeholder.
 - The Firestore and Mock repositories are not yet behaviorally identical.
 - Expense editing always recalculates equal splits.
 - Delete mutations currently have simpler loading/error handling than create/edit.
@@ -460,5 +459,6 @@ document and its member and expense subcollections.
 - calculateEqualSplits
 - calculateBalances
 - calculateSettlements
+- MockTripRepository.getTrips
 
 Repository, routing, UI, and Firebase behavior currently have little or no automated test coverage.

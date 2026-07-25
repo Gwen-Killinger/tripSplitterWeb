@@ -1,6 +1,62 @@
 import { describe, expect, it } from "vitest";
 import { MockTripRepository } from "./MockTripRepository";
 
+describe("MockTripRepository.getTrips", () => {
+  it("returns complete trip aggregates", async () => {
+    const repository = new MockTripRepository();
+
+    const trips = await repository.getTrips();
+
+    expect(trips).toHaveLength(1);
+    expect(trips[0]).toMatchObject({
+      id: "demo-trip",
+      name: "Chicago Weekend",
+      currencyCode: "USD",
+    });
+    expect(trips[0].members.length).toBeGreaterThan(0);
+    expect(trips[0].expenses.length).toBeGreaterThan(0);
+  });
+
+  it("returns cloned data that cannot mutate stored trips", async () => {
+    const repository = new MockTripRepository();
+    const listedTrips = await repository.getTrips();
+
+    listedTrips[0].name = "Changed";
+    listedTrips[0].members.length = 0;
+    listedTrips[0].expenses.length = 0;
+
+    const storedTrip = await repository.getTrip("demo-trip");
+
+    expect(storedTrip?.name).toBe("Chicago Weekend");
+    expect(storedTrip?.members.length).toBeGreaterThan(0);
+    expect(storedTrip?.expenses.length).toBeGreaterThan(0);
+  });
+
+  it("includes newly created trips", async () => {
+    const repository = new MockTripRepository();
+
+    const createdTrip = await repository.createTrip({
+      name: "Detroit Weekend",
+      currencyCode: "USD",
+    });
+
+    const trips = await repository.getTrips();
+
+    expect(trips).toContainEqual(createdTrip);
+  });
+
+  it("does not mutate stored trips while listing them", async () => {
+    const repository = new MockTripRepository();
+    const tripBefore = await repository.getTrip("demo-trip");
+
+    await repository.getTrips();
+
+    const tripAfter = await repository.getTrip("demo-trip");
+
+    expect(tripAfter).toEqual(tripBefore);
+  });
+});
+
 describe("MockTripRepository.addMember", () => {
   it("adds and returns a member with a generated ID", async () => {
     const repository = new MockTripRepository();
