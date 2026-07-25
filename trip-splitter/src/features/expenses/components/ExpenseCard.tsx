@@ -62,7 +62,7 @@ export function ExpenseCard({
           </button>
 
           <button
-            className="text-button"
+            className="text-button text-button--danger"
             type="button"
             onClick={onDelete}
           >

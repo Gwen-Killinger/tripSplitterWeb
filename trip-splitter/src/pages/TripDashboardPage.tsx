@@ -149,8 +149,10 @@ export function TripDashboardPage() {
           ← All trips
         </Link>
 
-        <h1>{trip.name}</h1>
-        <p>Trip ID: {trip.id}</p>
+        <h1 className="trip-header__title">{trip.name}</h1>
+        <p className="trip-header__metadata">
+          Trip ID: {trip.id}
+        </p>
       </header>
 
       <nav

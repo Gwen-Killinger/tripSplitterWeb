@@ -58,11 +58,16 @@ export function CreateTripPage() {
   }
 
   return (
-    <section>
-      <h1>Create a Trip</h1>
+    <section className="form-page">
+      <header className="form-page__header">
+        <h1>Create a Trip</h1>
+      </header>
 
-      <form onSubmit={handleSubmit}>
-        <div>
+      <form
+        className="create-trip-form"
+        onSubmit={handleSubmit}
+      >
+        <div className="form-field">
           <label htmlFor="trip-name">Trip name</label>
           <input
             id="trip-name"
@@ -77,7 +82,7 @@ export function CreateTripPage() {
           />
         </div>
 
-        <div>
+        <div className="form-field">
           <label htmlFor="owner-name">Your name</label>
           <p id="owner-name-help">
             This name will appear in expenses and identify
@@ -99,7 +104,7 @@ export function CreateTripPage() {
           />
         </div>
 
-        <div>
+        <div className="form-field">
           <label htmlFor="currency-code">Currency</label>
           <select
             id="currency-code"
@@ -112,18 +117,25 @@ export function CreateTripPage() {
           </select>
         </div>
 
-        {error !== null && <p role="alert">{error}</p>}
+        {error !== null && (
+          <p className="form-error" role="alert">
+            {error}
+          </p>
+        )}
 
-        <button
-          type="submit"
-          disabled={
-            isCreating ||
-            tripName.trim().length === 0 ||
-            ownerDisplayName.trim().length === 0
-          }
-        >
-          {isCreating ? "Creating..." : "Create Trip"}
-        </button>
+        <div className="form-actions">
+          <button
+            className="primary-button"
+            type="submit"
+            disabled={
+              isCreating ||
+              tripName.trim().length === 0 ||
+              ownerDisplayName.trim().length === 0
+            }
+          >
+            {isCreating ? "Creating..." : "Create Trip"}
+          </button>
+        </div>
       </form>
     </section>
   );
