@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router";
-import { calculateEqualSplits } from "../domain/calculateEqualSplits";
 import { ExpenseForm } from "../features/expenses/components/ExpenseForm";
-import type { ExpenseFormValues } from "../features/expenses/types";
+import type { ExpenseFormSubmission } from "../features/expenses/types";
 import { useTrip } from "../features/trips/hooks/useTrip";
 import { tripRepository } from "../repositories/repositoryInstance";
 
@@ -14,8 +13,7 @@ export function AddExpensePage() {
   const [saveError, setSaveError] = useState<string | null>(null);
 
   async function handleSubmit(
-    values: ExpenseFormValues,
-    amountCents: number,
+    submission: ExpenseFormSubmission,
   ) {
     if (!tripId || isSaving) {
       return;
@@ -25,20 +23,16 @@ export function AddExpensePage() {
     setSaveError(null);
 
     try {
-      const splits = calculateEqualSplits(
-        amountCents,
-        values.participantMemberIds,
-      );
-
       await tripRepository.addExpense(tripId, {
-        description: values.description,
-        amountCents,
-        expenseDate: values.expenseDate,
-        paidByMemberId: values.paidByMemberId,
+        description: submission.description,
+        amountCents: submission.amountCents,
+        expenseDate: submission.expenseDate,
+        paidByMemberId: submission.paidByMemberId,
         participantMemberIds:
-          values.participantMemberIds,
-        splits,
-        notes: values.notes || undefined,
+          submission.participantMemberIds,
+        splitMode: submission.splitMode,
+        splits: submission.splits,
+        notes: submission.notes || undefined,
       });
 
       navigate(`/trips/${tripId}`);
@@ -94,8 +88,8 @@ export function AddExpensePage() {
       members={trip.members}
       isSaving={isSaving}
       submitError={saveError}
-      onSubmit={(values, amountCents) => {
-        void handleSubmit(values, amountCents);
+      onSubmit={(submission) => {
+        void handleSubmit(submission);
       }}
     />
     </section>

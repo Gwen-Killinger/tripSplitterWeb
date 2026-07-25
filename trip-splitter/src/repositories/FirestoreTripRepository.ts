@@ -94,6 +94,7 @@ export class FirestoreTripRepository
           participantMemberIds:
             expenseData.participantMemberIds,
           splits: expenseData.splits,
+          splitMode: expenseData.splitMode ?? "equal",
           notes: expenseData.notes,
         };
       });
@@ -163,6 +164,8 @@ export class FirestoreTripRepository
               participantMemberIds:
                 expenseData.participantMemberIds,
               splits: expenseData.splits,
+              splitMode:
+                expenseData.splitMode ?? "equal",
               notes: expenseData.notes,
             };
           });
@@ -375,6 +378,7 @@ export class FirestoreTripRepository
         paidByMemberId: input.paidByMemberId,
         participantMemberIds: input.participantMemberIds,
         splits: input.splits,
+        splitMode: input.splitMode,
         notes: input.notes ?? "",
         createdByUserId: currentUser.uid,
         createdAt: serverTimestamp(),
@@ -389,6 +393,7 @@ export class FirestoreTripRepository
       paidByMemberId: input.paidByMemberId,
       participantMemberIds: input.participantMemberIds,
       splits: input.splits,
+      splitMode: input.splitMode,
       notes: input.notes,
     };
   }
@@ -419,6 +424,7 @@ async updateExpense(
       paidByMemberId: input.paidByMemberId,
       participantMemberIds: input.participantMemberIds,
       splits: input.splits,
+      splitMode: input.splitMode,
       notes: input.notes ?? "",
       updatedByUserId: currentUser.uid,
       updatedAt: serverTimestamp(),
@@ -432,6 +438,7 @@ async updateExpense(
       paidByMemberId: input.paidByMemberId,
       participantMemberIds: input.participantMemberIds,
       splits: input.splits,
+      splitMode: input.splitMode,
       notes: input.notes,
     };
   }

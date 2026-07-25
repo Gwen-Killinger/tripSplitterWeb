@@ -1,9 +1,12 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router";
-import { calculateEqualSplits } from "../domain/calculateEqualSplits";
 import { ExpenseForm } from "../features/expenses/components/ExpenseForm";
-import type { ExpenseFormValues } from "../features/expenses/types";
+import type {
+  ExpenseFormSubmission,
+  ExpenseFormValues,
+} from "../features/expenses/types";
 import { useTrip } from "../features/trips/hooks/useTrip";
+import { formatBasisPointsForInput } from "../lib/currency";
 import { tripRepository } from "../repositories/repositoryInstance";
 
 function formatCentsForInput(amountCents: number): string {
@@ -24,8 +27,7 @@ export function EditExpensePage() {
   );
 
   async function handleSubmit(
-    values: ExpenseFormValues,
-    amountCents: number,
+    submission: ExpenseFormSubmission,
   ): Promise<void> {
     if (!tripId || !expenseId || isSaving) {
       return;
@@ -35,23 +37,19 @@ export function EditExpensePage() {
     setSaveError(null);
 
     try {
-      const splits = calculateEqualSplits(
-        amountCents,
-        values.participantMemberIds,
-      );
-
       await tripRepository.updateExpense(
         tripId,
         expenseId,
         {
-          description: values.description,
-          amountCents,
-          expenseDate: values.expenseDate,
-          paidByMemberId: values.paidByMemberId,
+          description: submission.description,
+          amountCents: submission.amountCents,
+          expenseDate: submission.expenseDate,
+          paidByMemberId: submission.paidByMemberId,
           participantMemberIds:
-            values.participantMemberIds,
-          splits,
-          notes: values.notes || undefined,
+            submission.participantMemberIds,
+          splitMode: submission.splitMode,
+          splits: submission.splits,
+          notes: submission.notes || undefined,
         },
       );
 
@@ -96,6 +94,40 @@ export function EditExpensePage() {
     paidByMemberId: expense.paidByMemberId,
     participantMemberIds:
       expense.participantMemberIds,
+    splitMode: expense.splitMode,
+    exactAmounts: Object.fromEntries(
+      trip.members.map((member) => {
+        const split = expense.splits.find(
+          (candidate) =>
+            candidate.memberId === member.id,
+        );
+
+        return [
+          member.id,
+          expense.splitMode === "exact" && split
+            ? formatCentsForInput(split.shareCents)
+            : "",
+        ];
+      }),
+    ),
+    percentages: Object.fromEntries(
+      trip.members.map((member) => {
+        const split = expense.splits.find(
+          (candidate) =>
+            candidate.memberId === member.id,
+        );
+
+        return [
+          member.id,
+          expense.splitMode === "percentage" &&
+          split?.percentageBasisPoints !== undefined
+            ? formatBasisPointsForInput(
+                split.percentageBasisPoints,
+              )
+            : "",
+        ];
+      }),
+    ),
     notes: expense.notes ?? "",
   };
 
@@ -121,8 +153,8 @@ export function EditExpensePage() {
         isSaving={isSaving}
         submitError={saveError}
         submitLabel="Save Changes"
-        onSubmit={(values, amountCents) => {
-          void handleSubmit(values, amountCents);
+        onSubmit={(submission) => {
+          void handleSubmit(submission);
         }}
       />
     </section>

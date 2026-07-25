@@ -385,6 +385,8 @@ Implemented:
 - Expense editing
 - Expense deletion
 - Equal split calculations
+- Exact amount split calculations
+- Percentage split calculations
 - Balance calculations
 - Settlement calculations
 - Loading states
@@ -427,7 +429,6 @@ its existing architecture and style.
 These are known project limitations, not bugs for every task.
 
 - The Firestore and Mock repositories are not yet behaviorally identical.
-- Expense editing always recalculates equal splits.
 - Delete mutations currently have simpler loading/error handling than create/edit.
 
 ## Current Project Conventions
@@ -458,8 +459,11 @@ document and its member and expense subcollections.
 ## Current automated tests cover:
 
 - calculateEqualSplits
+- calculateExactSplits
+- calculatePercentageSplits
 - calculateBalances
 - calculateSettlements
+- custom split input parsing and preparation
 - MockTripRepository.getTrips
 - MockTripRepository.deleteTrip
 

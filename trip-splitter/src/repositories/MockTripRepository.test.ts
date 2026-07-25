@@ -171,3 +171,97 @@ describe("MockTripRepository.addMember", () => {
     expect(tripAfter?.expenses).toEqual(tripBefore?.expenses);
   });
 });
+
+describe("MockTripRepository custom expense splits", () => {
+  it("stores and returns exact split metadata", async () => {
+    const repository = new MockTripRepository();
+
+    const expense = await repository.addExpense("demo-trip", {
+      description: "Tickets",
+      amountCents: 1000,
+      expenseDate: "2026-07-20",
+      paidByMemberId: "member-gwen",
+      participantMemberIds: [
+        "member-gwen",
+        "member-alex",
+      ],
+      splitMode: "exact",
+      splits: [
+        { memberId: "member-gwen", shareCents: 700 },
+        { memberId: "member-alex", shareCents: 300 },
+      ],
+    });
+
+    const trip = await repository.getTrip("demo-trip");
+
+    expect(trip?.expenses).toContainEqual(expense);
+  });
+
+  it("preserves percentage metadata through add and update", async () => {
+    const repository = new MockTripRepository();
+
+    const expense = await repository.addExpense("demo-trip", {
+      description: "Tickets",
+      amountCents: 1000,
+      expenseDate: "2026-07-20",
+      paidByMemberId: "member-gwen",
+      participantMemberIds: [
+        "member-gwen",
+        "member-alex",
+      ],
+      splitMode: "equal",
+      splits: [
+        { memberId: "member-gwen", shareCents: 500 },
+        { memberId: "member-alex", shareCents: 500 },
+      ],
+    });
+
+    const updated = await repository.updateExpense(
+      "demo-trip",
+      expense.id,
+      {
+        description: expense.description,
+        amountCents: expense.amountCents,
+        expenseDate: expense.expenseDate,
+        paidByMemberId: expense.paidByMemberId,
+        participantMemberIds:
+          expense.participantMemberIds,
+        splitMode: "percentage",
+        splits: [
+          {
+            memberId: "member-gwen",
+            shareCents: 600,
+            percentageBasisPoints: 6000,
+          },
+          {
+            memberId: "member-alex",
+            shareCents: 400,
+            percentageBasisPoints: 4000,
+          },
+        ],
+      },
+    );
+
+    expect(updated.splitMode).toBe("percentage");
+    expect(updated.splits).toEqual([
+      {
+        memberId: "member-gwen",
+        shareCents: 600,
+        percentageBasisPoints: 6000,
+      },
+      {
+        memberId: "member-alex",
+        shareCents: 400,
+        percentageBasisPoints: 4000,
+      },
+    ]);
+
+    updated.splits[0].shareCents = 0;
+    const storedTrip = await repository.getTrip("demo-trip");
+    const storedExpense = storedTrip?.expenses.find(
+      (candidate) => candidate.id === expense.id,
+    );
+
+    expect(storedExpense?.splits[0].shareCents).toBe(600);
+  });
+});

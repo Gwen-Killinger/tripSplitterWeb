@@ -23,3 +23,45 @@ export function parseCurrencyToCents(value: string): number | null {
 
   return Math.round(amount * 100);
 }
+
+export function parseNonnegativeCurrencyToCents(
+  value: string,
+): number | null {
+  const normalizedValue = value.replace(/[$,\s]/g, "");
+
+  if (!/^\d+(\.\d{0,2})?$/.test(normalizedValue)) {
+    return null;
+  }
+
+  const amount = Number(normalizedValue);
+
+  if (!Number.isFinite(amount) || amount < 0) {
+    return null;
+  }
+
+  return Math.round(amount * 100);
+}
+
+export function parsePercentageToBasisPoints(
+  value: string,
+): number | null {
+  const normalizedValue = value.replace(/[%\s]/g, "");
+
+  if (!/^\d+(\.\d{0,2})?$/.test(normalizedValue)) {
+    return null;
+  }
+
+  const percentage = Number(normalizedValue);
+
+  if (!Number.isFinite(percentage) || percentage < 0) {
+    return null;
+  }
+
+  return Math.round(percentage * 100);
+}
+
+export function formatBasisPointsForInput(
+  basisPoints: number,
+): string {
+  return (basisPoints / 100).toFixed(2);
+}

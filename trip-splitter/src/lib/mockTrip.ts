@@ -30,6 +30,7 @@ export const mockTrip: Trip = {
         "member-alex",
         "member-sarah",
       ],
+      splitMode: "equal",
       splits: [
         {
           memberId: "member-gwen",
@@ -56,6 +57,7 @@ export const mockTrip: Trip = {
         "member-alex",
         "member-sarah",
       ],
+      splitMode: "equal",
       splits: [
         {
           memberId: "member-gwen",
@@ -79,6 +81,7 @@ export const mockTrip: Trip = {
       expenseDate: "2026-07-18",
       paidByMemberId: "member-sarah",
       participantMemberIds: ["member-gwen", "member-sarah"],
+      splitMode: "equal",
       splits: [
         {
           memberId: "member-gwen",

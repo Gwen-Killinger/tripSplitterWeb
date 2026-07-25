@@ -6,7 +6,13 @@ export type TripMember = {
 export type ExpenseSplit = {
   memberId: string;
   shareCents: number;
+  percentageBasisPoints?: number;
 };
+
+export type ExpenseSplitMode =
+  | "equal"
+  | "exact"
+  | "percentage";
 
 export type Expense = {
   id: string;
@@ -16,6 +22,7 @@ export type Expense = {
   paidByMemberId: string;
   participantMemberIds: string[];
   splits: ExpenseSplit[];
+  splitMode: ExpenseSplitMode;
   notes?: string;
 };
 
