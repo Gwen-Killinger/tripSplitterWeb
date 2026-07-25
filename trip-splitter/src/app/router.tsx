@@ -11,6 +11,7 @@ import { TripSettlementPage } from "../pages/TripSettlementPage";
 import { AddExpensePage } from "../pages/AddExpensePage";
 import { EditExpensePage } from "../pages/EditExpensePage";
 import { TripMembersPage } from "../pages/TripMembersPage";
+import { JoinTripPage } from "../pages/JoinTripPage";
 
 export const router = createBrowserRouter([
   {
@@ -28,6 +29,10 @@ export const router = createBrowserRouter([
       {
         path: "trips/new",
         element: <CreateTripPage />,
+      },
+      {
+        path: "join/:inviteToken",
+        element: <JoinTripPage />,
       },
       {
         path: "trips/:tripId/expenses/new",

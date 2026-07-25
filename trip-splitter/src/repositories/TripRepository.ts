@@ -1,6 +1,9 @@
 import type {
+  AcceptTripInviteResult,
+  AccessibleTrip,
   Expense,
   Trip,
+  TripInvite,
   TripMember,
 } from "../domain/models";
 
@@ -16,13 +19,19 @@ export type AddMemberInput = {
 };
 
 export interface TripRepository {
-  getTrip(tripId: string): Promise<Trip | null>;
+  getTrip(tripId: string): Promise<AccessibleTrip | null>;
 
-  getTrips(): Promise<Trip[]>;
+  getTrips(): Promise<AccessibleTrip[]>;
 
   createTrip(input: CreateTripInput): Promise<Trip>;
 
   deleteTrip(tripId: string): Promise<void>;
+
+  createTripInvite(tripId: string): Promise<TripInvite>;
+
+  acceptTripInvite(
+    inviteToken: string,
+  ): Promise<AcceptTripInviteResult>;
 
   addMember(
     tripId: string,

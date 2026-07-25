@@ -1,13 +1,13 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
-import type { Trip } from "../domain/models";
+import type { AccessibleTrip } from "../domain/models";
 import { TripCard } from "../features/trips/components/TripCard";
 import { ensureAuthenticated } from "../firebase/ensureAuthenticated";
 import { tripRepository } from "../repositories/repositoryInstance";
 
 export function TripsPage() {
   const navigate = useNavigate();
-  const [trips, setTrips] = useState<Trip[]>([]);
+  const [trips, setTrips] = useState<AccessibleTrip[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [reloadCount, setReloadCount] = useState(0);
@@ -53,7 +53,7 @@ export function TripsPage() {
   }, [reloadCount]);
 
   const sortedTrips = [...trips].sort((first, second) =>
-    first.name.localeCompare(second.name, undefined, {
+    first.trip.name.localeCompare(second.trip.name, undefined, {
       sensitivity: "base",
     }),
   );
@@ -108,12 +108,14 @@ export function TripsPage() {
         error === null &&
         sortedTrips.length > 0 && (
           <div className="trip-list">
-            {sortedTrips.map((trip) => (
+            {sortedTrips.map((accessibleTrip) => (
               <TripCard
-                key={trip.id}
-                trip={trip}
+                key={accessibleTrip.trip.id}
+                accessibleTrip={accessibleTrip}
                 onSelect={() =>
-                  navigate(`/trips/${trip.id}`)
+                  navigate(
+                    `/trips/${accessibleTrip.trip.id}`,
+                  )
                 }
               />
             ))}

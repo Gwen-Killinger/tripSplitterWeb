@@ -1,14 +1,16 @@
-import type { Trip } from "../../../domain/models";
+import type { AccessibleTrip } from "../../../domain/models";
 
 type TripCardProps = {
-  trip: Trip;
+  accessibleTrip: AccessibleTrip;
   onSelect: () => void;
 };
 
 export function TripCard({
-  trip,
+  accessibleTrip,
   onSelect,
 }: TripCardProps) {
+  const { trip, role } = accessibleTrip;
+
   return (
     <button
       className="trip-list-card"
@@ -24,6 +26,10 @@ export function TripCard({
         {trip.members.length === 1 ? "member" : "members"} ·{" "}
         {trip.expenses.length}{" "}
         {trip.expenses.length === 1 ? "expense" : "expenses"}
+      </span>
+
+      <span className="trip-list-card__role">
+        {role === "owner" ? "Owned" : "Shared"}
       </span>
     </button>
   );

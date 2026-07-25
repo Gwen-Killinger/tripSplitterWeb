@@ -7,6 +7,7 @@ import {
 } from "react-router";
 import { useRef, useState } from "react";
 import { DeleteTripConfirmation } from "../features/trips/components/DeleteTripConfirmation";
+import { ShareTripSection } from "../features/trips/components/ShareTripSection";
 import { useTrip } from "../features/trips/hooks/useTrip";
 import { tripRepository } from "../repositories/repositoryInstance";
 
@@ -26,13 +27,73 @@ function getTripNavigationClassName({
 export function TripDashboardPage() {
   const navigate = useNavigate();
   const { tripId } = useParams();
-  const { trip, isLoading, error, reload } = useTrip(tripId);
+  const { trip, role, isLoading, error, reload } =
+    useTrip(tripId);
   const [isConfirmingDelete, setIsConfirmingDelete] =
     useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] =
     useState<string | null>(null);
   const isDeletingRef = useRef(false);
+  const [inviteUrl, setInviteUrl] =
+    useState<string | null>(null);
+  const [isCreatingInvite, setIsCreatingInvite] =
+    useState(false);
+  const [isInviteCopied, setIsInviteCopied] =
+    useState(false);
+  const [inviteError, setInviteError] =
+    useState<string | null>(null);
+  const isCreatingInviteRef = useRef(false);
+
+  async function handleCreateInvite(): Promise<void> {
+    if (!trip || isCreatingInviteRef.current) {
+      return;
+    }
+
+    isCreatingInviteRef.current = true;
+    setIsCreatingInvite(true);
+    setInviteError(null);
+
+    try {
+      const invite =
+        await tripRepository.createTripInvite(trip.id);
+      setInviteUrl(
+        `${window.location.origin}/join/${invite.token}`,
+      );
+      setIsInviteCopied(false);
+    } catch (caughtError) {
+      console.error(
+        "Unable to create trip invite:",
+        caughtError,
+      );
+      setInviteError(
+        "Unable to create an invite link. Please try again.",
+      );
+    } finally {
+      isCreatingInviteRef.current = false;
+      setIsCreatingInvite(false);
+    }
+  }
+
+  async function handleCopyInvite(): Promise<void> {
+    if (inviteUrl === null) {
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(inviteUrl);
+      setIsInviteCopied(true);
+      setInviteError(null);
+    } catch (caughtError) {
+      console.error(
+        "Unable to copy trip invite:",
+        caughtError,
+      );
+      setInviteError(
+        "Unable to copy the link. Select and copy it manually.",
+      );
+    }
+  }
 
   async function handleDeleteTrip(): Promise<void> {
     if (!trip || isDeletingRef.current) {
@@ -126,41 +187,59 @@ export function TripDashboardPage() {
         </NavLink>
       </nav>
 
-      <Outlet context={{ trip, reload }} />
+      <Outlet context={{ trip, role, reload }} />
 
-      <section className="danger-zone">
-        <h2>Danger Zone</h2>
-        <p>
-          Permanently delete this trip and all of its data.
-        </p>
+      {role === "owner" && (
+        <ShareTripSection
+          inviteUrl={inviteUrl}
+          isCreating={isCreatingInvite}
+          isCopied={isInviteCopied}
+          error={inviteError}
+          onCreate={() => {
+            void handleCreateInvite();
+          }}
+          onCopy={() => {
+            void handleCopyInvite();
+          }}
+        />
+      )}
 
-        {isConfirmingDelete ? (
-          <DeleteTripConfirmation
-            tripName={trip.name}
-            isDeleting={isDeleting}
-            error={deleteError}
-            onCancel={() => {
-              setIsConfirmingDelete(false);
-              setDeleteError(null);
-            }}
-            onConfirm={() => {
-              void handleDeleteTrip();
-            }}
-          />
-        ) : (
-          <button
-            className="danger-button"
-            type="button"
-            disabled={isDeleting}
-            onClick={() => {
-              setIsConfirmingDelete(true);
-              setDeleteError(null);
-            }}
-          >
-            Delete Trip
-          </button>
-        )}
-      </section>
+      {role === "owner" && (
+        <section className="danger-zone">
+          <h2>Danger Zone</h2>
+          <p>
+            Permanently delete this trip and all of its
+            data.
+          </p>
+
+          {isConfirmingDelete ? (
+            <DeleteTripConfirmation
+              tripName={trip.name}
+              isDeleting={isDeleting}
+              error={deleteError}
+              onCancel={() => {
+                setIsConfirmingDelete(false);
+                setDeleteError(null);
+              }}
+              onConfirm={() => {
+                void handleDeleteTrip();
+              }}
+            />
+          ) : (
+            <button
+              className="danger-button"
+              type="button"
+              disabled={isDeleting}
+              onClick={() => {
+                setIsConfirmingDelete(true);
+                setDeleteError(null);
+              }}
+            >
+              Delete Trip
+            </button>
+          )}
+        </section>
+      )}
     </div>
   );
 }

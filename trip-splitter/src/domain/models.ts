@@ -34,6 +34,25 @@ export type Trip = {
   expenses: Expense[];
 };
 
+export type TripRole = "owner" | "editor";
+
+export type AccessibleTrip = {
+  trip: Trip;
+  role: TripRole;
+};
+
+export type TripInvite = {
+  token: string;
+};
+
+export type AcceptTripInviteResult = {
+  tripId: string;
+  status:
+    | "joined"
+    | "already-collaborator"
+    | "already-owner";
+};
+
 export type CalculatedSplit = {
   memberId: string;
   shareCents: number;

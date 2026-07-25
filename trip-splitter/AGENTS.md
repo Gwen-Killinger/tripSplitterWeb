@@ -172,6 +172,27 @@ Expenses
 trips/{tripId}/expenses/{expenseId}
 ```
 
+Collaborators
+
+```
+trips/{tripId}/collaborators/{userId}
+```
+
+User trip-access index
+
+```
+users/{userId}/tripAccess/{tripId}
+```
+
+Invites
+
+```
+tripInvites/{inviteHash}
+```
+
+Trip members are expense participants. Collaborators are authenticated users
+with trip access. Do not merge these concepts.
+
 Preserve existing field names unless a task explicitly requires a schema
 migration.
 
@@ -381,6 +402,7 @@ Implemented:
 - Trip loading
 - Trip listing
 - Trip deletion
+- Trip sharing through secure invite links
 - Expense creation
 - Expense editing
 - Expense deletion
@@ -396,7 +418,6 @@ Likely next work:
 
 - Member management
 - Trip editing
-- Sharing
 - Multi-user support
 
 ---
@@ -456,6 +477,12 @@ document and its member and expense subcollections.
 
 `MockTripRepository` assembles trips from in-memory data.
 
+Repository trip reads return `AccessibleTrip`, which keeps the current user's
+`owner` or `editor` role separate from the core `Trip` aggregate.
+
+Trip `ownerId` and collaborator documents are authoritative for access.
+User trip-access documents are a derived listing index.
+
 ## Current automated tests cover:
 
 - calculateEqualSplits
@@ -466,5 +493,7 @@ document and its member and expense subcollections.
 - custom split input parsing and preparation
 - MockTripRepository.getTrips
 - MockTripRepository.deleteTrip
+- invite token generation and hashing
+- MockTripRepository sharing and authorization
 
 Repository, routing, UI, and Firebase behavior currently have little or no automated test coverage.
