@@ -374,8 +374,8 @@ export class FirestoreTripRepository
     inviteToken: string,
   ): Promise<AcceptTripInviteResult> {
     const currentUserId = this.getCurrentUserId();
-    const inviteHash =
-      await hashInviteToken(inviteToken);
+    const inviteHash = await hashInviteToken(inviteToken);
+
     const inviteRef = doc(
       this.db,
       "tripInvites",
@@ -397,7 +397,14 @@ export class FirestoreTripRepository
       }
 
       const tripId = inviteData.tripId;
-      const tripRef = doc(this.db, "trips", tripId);
+
+      if (inviteData.createdByUserId === currentUserId) {
+        return {
+          tripId,
+          status: "already-owner",
+        };
+      }
+
       const collaboratorRef = doc(
         this.db,
         "trips",
@@ -405,6 +412,7 @@ export class FirestoreTripRepository
         "collaborators",
         currentUserId,
       );
+
       const accessRef = doc(
         this.db,
         "users",
@@ -412,28 +420,14 @@ export class FirestoreTripRepository
         "tripAccess",
         tripId,
       );
+
       const [
-        tripSnapshot,
         collaboratorSnapshot,
         accessSnapshot,
       ] = await Promise.all([
-        transaction.get(tripRef),
         transaction.get(collaboratorRef),
         transaction.get(accessRef),
       ]);
-
-      if (!tripSnapshot.exists()) {
-        throw new Error("Invite is invalid.");
-      }
-
-      if (
-        tripSnapshot.data().ownerId === currentUserId
-      ) {
-        return {
-          tripId,
-          status: "already-owner",
-        };
-      }
 
       if (collaboratorSnapshot.exists()) {
         if (!accessSnapshot.exists()) {
@@ -455,6 +449,7 @@ export class FirestoreTripRepository
         joinedAt: serverTimestamp(),
         inviteHash,
       });
+
       transaction.set(accessRef, {
         tripId,
         role: "editor",

@@ -8,7 +8,9 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "test": "vitest"
+    "test": "vitest",
+    "test:rules": "node test/firestore.rules.mjs",
+    "test:rules:emulator": "firebase emulators:exec --only firestore \"npm run test:rules\""
   },
   "dependencies": {
     "firebase": "^12.16.0",
@@ -18,6 +20,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@firebase/rules-unit-testing": "^5.0.1",
     "@types/node": "^24.13.2",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",

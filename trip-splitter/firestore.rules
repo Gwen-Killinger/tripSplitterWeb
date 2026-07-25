@@ -1,0 +1,210 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function tripPath(tripId) {
+      return /databases/$(database)/documents/trips/$(tripId);
+    }
+
+    function collaboratorPath(tripId, userId) {
+      return /databases/$(database)/documents/trips/$(tripId)/collaborators/$(userId);
+    }
+
+    function accessPath(userId, tripId) {
+      return /databases/$(database)/documents/users/$(userId)/tripAccess/$(tripId);
+    }
+
+    function memberPath(tripId, memberId) {
+      return /databases/$(database)/documents/trips/$(tripId)/members/$(memberId);
+    }
+
+    function invitePath(inviteHash) {
+      return /databases/$(database)/documents/tripInvites/$(inviteHash);
+    }
+
+    function isTripOwner(tripId) {
+      return isSignedIn()
+        && get(tripPath(tripId)).data.ownerId == request.auth.uid;
+    }
+
+    function isTripEditor(tripId) {
+      return isSignedIn()
+        && get(collaboratorPath(tripId, request.auth.uid)).data.role == "editor";
+    }
+
+    function canAccessTrip(tripId) {
+      return isTripOwner(tripId) || isTripEditor(tripId);
+    }
+
+    function validTripCreate(tripId) {
+      return request.resource.data.keys().hasOnly([
+          "name",
+          "currencyCode",
+          "ownerId",
+          "createdAt"
+        ])
+        && request.resource.data.name is string
+        && request.resource.data.currencyCode is string
+        && request.resource.data.ownerId == request.auth.uid
+        && request.resource.data.createdAt == request.time
+        && getAfter(
+          accessPath(request.auth.uid, tripId)
+        ).data.tripId == tripId
+        && getAfter(
+          accessPath(request.auth.uid, tripId)
+        ).data.role == "owner"
+        && getAfter(
+          memberPath(tripId, request.auth.uid)
+        ).data.displayName == "You";
+    }
+
+    function validMemberWrite() {
+      return request.resource.data.keys().hasOnly(["displayName"])
+        && request.resource.data.displayName is string;
+    }
+
+    function validOwnerMemberBootstrap(tripId, memberId) {
+      return request.auth.uid == memberId
+        && request.resource.data.displayName == "You"
+        && getAfter(tripPath(tripId)).data.ownerId == request.auth.uid;
+    }
+
+    function validInviteCreate(inviteHash) {
+      return inviteHash.matches("^[0-9a-f]{64}$")
+        && request.resource.data.keys().hasOnly([
+          "tripId",
+          "createdByUserId",
+          "status",
+          "createdAt"
+        ])
+        && request.resource.data.tripId is string
+        && request.resource.data.createdByUserId == request.auth.uid
+        && request.resource.data.status == "active"
+        && request.resource.data.createdAt == request.time
+        && isTripOwner(request.resource.data.tripId);
+    }
+
+    function validInviteForCollaborator(tripId, inviteHash) {
+      return inviteHash.matches("^[0-9a-f]{64}$")
+        && get(invitePath(inviteHash)).data.tripId == tripId
+        && get(invitePath(inviteHash)).data.status == "active";
+    }
+
+    function validEditorAccessWrite(userId, tripId) {
+      return request.auth.uid == userId
+        && request.resource.data.keys().hasOnly([
+          "tripId",
+          "role",
+          "grantedAt"
+        ])
+        && request.resource.data.tripId == tripId
+        && request.resource.data.role == "editor"
+        && request.resource.data.grantedAt == request.time
+        && getAfter(collaboratorPath(tripId, userId)).data.role == "editor";
+    }
+
+    function validOwnerAccessWrite(userId, tripId) {
+      return request.auth.uid == userId
+        && request.resource.data.keys().hasOnly([
+          "tripId",
+          "role",
+          "grantedAt"
+        ])
+        && request.resource.data.tripId == tripId
+        && request.resource.data.role == "owner"
+        && request.resource.data.grantedAt == request.time
+        && getAfter(tripPath(tripId)).data.ownerId == userId;
+    }
+
+    match /trips/{tripId} {
+      allow get, list: if isSignedIn()
+        && (
+          resource.data.ownerId == request.auth.uid
+          || isTripEditor(tripId)
+        );
+
+      allow create: if isSignedIn()
+        && validTripCreate(tripId);
+      allow update: if false;
+      allow delete: if isSignedIn()
+        && resource.data.ownerId == request.auth.uid;
+
+      match /members/{memberId} {
+        allow read, delete: if canAccessTrip(tripId);
+        allow create: if (
+            canAccessTrip(tripId)
+            || validOwnerMemberBootstrap(tripId, memberId)
+          )
+          && validMemberWrite();
+        allow update: if canAccessTrip(tripId)
+          && validMemberWrite();
+      }
+
+      match /expenses/{expenseId} {
+        allow read, create, update, delete: if canAccessTrip(tripId);
+      }
+
+      match /collaborators/{userId} {
+        allow get: if isSignedIn()
+          && (
+            isTripOwner(tripId)
+            || request.auth.uid == userId
+          );
+        allow list: if isTripOwner(tripId);
+
+        allow create: if isSignedIn()
+          && request.auth.uid == userId
+          && request.resource.data.keys().hasOnly([
+            "role",
+            "joinedAt",
+            "inviteHash"
+          ])
+          && request.resource.data.role == "editor"
+          && request.resource.data.joinedAt == request.time
+          && request.resource.data.inviteHash is string
+          && validInviteForCollaborator(
+            tripId,
+            request.resource.data.inviteHash
+          )
+          && getAfter(accessPath(userId, tripId)).data.tripId == tripId
+          && getAfter(accessPath(userId, tripId)).data.role == "editor";
+
+        allow update: if false;
+        allow delete: if isTripOwner(tripId);
+      }
+    }
+
+    match /users/{userId}/tripAccess/{tripId} {
+      allow get, list: if isSignedIn()
+        && request.auth.uid == userId;
+
+      allow create, update: if isSignedIn()
+        && (
+          validOwnerAccessWrite(userId, tripId)
+          || validEditorAccessWrite(userId, tripId)
+        );
+
+      allow delete: if isSignedIn()
+        && (
+          request.auth.uid == userId
+          || isTripOwner(tripId)
+        );
+    }
+
+    match /tripInvites/{inviteHash} {
+      allow get: if isSignedIn();
+      allow list: if isSignedIn()
+        && isTripOwner(resource.data.tripId);
+
+      allow create: if isSignedIn()
+        && validInviteCreate(inviteHash);
+      allow update: if false;
+      allow delete: if isSignedIn()
+        && isTripOwner(resource.data.tripId);
+    }
+  }
+}
