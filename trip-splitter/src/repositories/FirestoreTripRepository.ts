@@ -16,9 +16,11 @@ import type {
   Trip,
   TripMember,
 } from "../domain/models";
+import { validateMemberDisplayName } from "../domain/validateMemberDisplayName";
 
 import type {
   AddExpenseInput,
+  AddMemberInput,
   CreateTripInput,
   TripRepository,
   UpdateExpenseInput,
@@ -149,6 +151,55 @@ export class FirestoreTripRepository
         },
       ],
       expenses: [],
+    };
+  }
+
+  async addMember(
+    tripId: string,
+    input: AddMemberInput,
+  ): Promise<TripMember> {
+    const currentUser = this.auth.currentUser;
+
+    if (currentUser === null) {
+      throw new Error("User is not authenticated.");
+    }
+
+    const tripRef = doc(this.db, "trips", tripId);
+    const membersRef = collection(
+      this.db,
+      "trips",
+      tripId,
+      "members",
+    );
+
+    const [tripSnapshot, membersSnapshot] =
+      await Promise.all([
+        getDoc(tripRef),
+        getDocs(membersRef),
+      ]);
+
+    if (!tripSnapshot.exists()) {
+      throw new Error(`Trip not found: ${tripId}`);
+    }
+
+    const members: TripMember[] =
+      membersSnapshot.docs.map((memberDocument) => ({
+        id: memberDocument.id,
+        displayName: memberDocument.data().displayName,
+      }));
+
+    const displayName = validateMemberDisplayName(
+      input.displayName,
+      members,
+    );
+
+    const memberRef = await addDoc(membersRef, {
+      displayName,
+    });
+
+    return {
+      id: memberRef.id,
+      displayName,
     };
   }
 

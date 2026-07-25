@@ -1,7 +1,13 @@
-import type { Expense, Trip } from "../domain/models";
+import type {
+  Expense,
+  Trip,
+  TripMember,
+} from "../domain/models";
+import { validateMemberDisplayName } from "../domain/validateMemberDisplayName";
 import { mockTrip } from "../lib/mockTrip";
 import type {
   AddExpenseInput,
+  AddMemberInput,
   CreateTripInput,
   TripRepository,
   UpdateExpenseInput,
@@ -38,6 +44,31 @@ export class MockTripRepository implements TripRepository {
     this.trips.set(trip.id, trip);
 
     return cloneTrip(trip);
+  }
+
+  async addMember(
+    tripId: string,
+    input: AddMemberInput,
+  ): Promise<TripMember> {
+    const trip = this.trips.get(tripId);
+
+    if (!trip) {
+      throw new Error(`Trip not found: ${tripId}`);
+    }
+
+    const displayName = validateMemberDisplayName(
+      input.displayName,
+      trip.members,
+    );
+
+    const member: TripMember = {
+      id: crypto.randomUUID(),
+      displayName,
+    };
+
+    trip.members.push(member);
+
+    return structuredClone(member);
   }
 
   async addExpense(

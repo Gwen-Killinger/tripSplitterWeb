@@ -79,6 +79,13 @@ export function TripDashboardPage() {
 
         <NavLink
           className={getTripNavigationClassName}
+          to={`/trips/${trip.id}/members`}
+        >
+          Members
+        </NavLink>
+
+        <NavLink
+          className={getTripNavigationClassName}
           to={`/trips/${trip.id}/settle`}
         >
           Settle Up

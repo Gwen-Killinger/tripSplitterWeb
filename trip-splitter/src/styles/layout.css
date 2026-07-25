@@ -84,7 +84,7 @@
   left: 0;
   z-index: 20;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   border-top: 1px solid #e2e8f0;
   background: #ffffff;
 }
@@ -358,7 +358,8 @@
   text-decoration: underline;
 }
 
-.expense-form {
+.expense-form,
+.member-form {
   display: grid;
   gap: 1.5rem;
 }
