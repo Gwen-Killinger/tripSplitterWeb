@@ -10,6 +10,7 @@ import type {
 export type CreateTripInput = {
   name: string;
   currencyCode: string;
+  ownerDisplayName: string;
 };
 
 export type AddExpenseInput = Omit<Expense, "id">;

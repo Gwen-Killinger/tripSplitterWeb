@@ -148,7 +148,7 @@
   font-size: 0.875rem;
 }
 
-.trip-list-card__role {
+.role-badge {
   width: fit-content;
   padding: 0.25rem 0.5rem;
   border-radius: 999px;
@@ -156,6 +156,13 @@
   color: #475569;
   font-size: 0.75rem;
   font-weight: 700;
+}
+
+.member-name {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
 }
 
 .share-trip {

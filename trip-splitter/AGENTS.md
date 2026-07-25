@@ -160,6 +160,10 @@ Trips
 trips/{tripId}
 ```
 
+Trip documents keep `ownerId` as authorization metadata and
+`ownerMemberId` as the ID of the `TripMember` representing the owner in
+expenses. Do not use the current viewer's role to infer the owner member.
+
 Members
 
 ```
@@ -475,6 +479,11 @@ Expense dates are stored as `YYYY-MM-DD` strings.
 `FirestoreTripRepository` assembles complete `Trip` aggregates from the trip
 document and its member and expense subcollections.
 
+`Trip.ownerMemberId` identifies the expense participant representing the
+owner. New trips use the authenticated UID as both the initial owner member
+document ID and `ownerMemberId`; these remain conceptually separate from
+authorization `ownerId`.
+
 `MockTripRepository` assembles trips from in-memory data.
 
 Repository trip reads return `AccessibleTrip`, which keeps the current user's
@@ -495,5 +504,9 @@ User trip-access documents are a derived listing index.
 - MockTripRepository.deleteTrip
 - invite token generation and hashing
 - MockTripRepository sharing and authorization
+- owner display-name validation and legacy owner-member resolution
+- owner member-list presentation
+- Firestore security rules, through the emulator test command
 
-Repository, routing, UI, and Firebase behavior currently have little or no automated test coverage.
+Firestore repository mapping and routing behavior currently have little or no
+direct automated test coverage.

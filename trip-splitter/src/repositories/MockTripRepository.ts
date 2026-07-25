@@ -8,6 +8,7 @@ import type {
   TripRole,
 } from "../domain/models";
 import { validateMemberDisplayName } from "../domain/validateMemberDisplayName";
+import { validateOwnerDisplayName } from "../domain/validateOwnerDisplayName";
 import {
   generateInviteToken,
   hashInviteToken,
@@ -166,11 +167,20 @@ export class MockTripRepository implements TripRepository {
   }
 
   async createTrip(input: CreateTripInput): Promise<Trip> {
+    const ownerDisplayName = validateOwnerDisplayName(
+      input.ownerDisplayName,
+    );
     const trip: Trip = {
       id: crypto.randomUUID(),
       name: input.name,
       currencyCode: input.currencyCode,
-      members: [],
+      ownerMemberId: this.currentUserId,
+      members: [
+        {
+          id: this.currentUserId,
+          displayName: ownerDisplayName,
+        },
+      ],
       expenses: [],
     };
 

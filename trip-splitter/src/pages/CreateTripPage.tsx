@@ -1,12 +1,15 @@
 import { useState, type SubmitEvent } from "react";
 import { useNavigate } from "react-router";
 
+import { validateOwnerDisplayName } from "../domain/validateOwnerDisplayName";
 import { tripRepository } from "../repositories/repositoryInstance";
 
 export function CreateTripPage() {
   const navigate = useNavigate();
 
   const [tripName, setTripName] = useState("");
+  const [ownerDisplayName, setOwnerDisplayName] =
+    useState("");
   const [currencyCode, setCurrencyCode] = useState("USD");
   const [isCreating, setIsCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -21,6 +24,20 @@ export function CreateTripPage() {
       return;
     }
 
+    let validatedOwnerDisplayName: string;
+
+    try {
+      validatedOwnerDisplayName =
+        validateOwnerDisplayName(ownerDisplayName);
+    } catch (caughtError) {
+      setError(
+        caughtError instanceof Error
+          ? caughtError.message
+          : "Enter your name.",
+      );
+      return;
+    }
+
     setIsCreating(true);
     setError(null);
 
@@ -28,6 +45,7 @@ export function CreateTripPage() {
       const trip = await tripRepository.createTrip({
         name: trimmedTripName,
         currencyCode,
+        ownerDisplayName: validatedOwnerDisplayName,
       });
 
       navigate(`/trips/${trip.id}`);
@@ -60,6 +78,28 @@ export function CreateTripPage() {
         </div>
 
         <div>
+          <label htmlFor="owner-name">Your name</label>
+          <p id="owner-name-help">
+            This name will appear in expenses and identify
+            you as the trip owner.
+          </p>
+          <input
+            id="owner-name"
+            name="ownerDisplayName"
+            type="text"
+            value={ownerDisplayName}
+            onChange={(event) =>
+              setOwnerDisplayName(event.target.value)
+            }
+            placeholder="Gwen"
+            autoComplete="name"
+            aria-describedby="owner-name-help"
+            disabled={isCreating}
+            required
+          />
+        </div>
+
+        <div>
           <label htmlFor="currency-code">Currency</label>
           <select
             id="currency-code"
@@ -76,7 +116,11 @@ export function CreateTripPage() {
 
         <button
           type="submit"
-          disabled={isCreating || tripName.trim().length === 0}
+          disabled={
+            isCreating ||
+            tripName.trim().length === 0 ||
+            ownerDisplayName.trim().length === 0
+          }
         >
           {isCreating ? "Creating..." : "Create Trip"}
         </button>

@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
 import { MemberForm } from "../features/members/components/MemberForm";
+import { TripMemberList } from "../features/members/components/TripMemberList";
 import { useTripOutlet } from "../features/trips/hooks/useTripOutlet";
 import { tripRepository } from "../repositories/repositoryInstance";
 
@@ -59,17 +60,10 @@ export function TripMembersPage() {
         </div>
       </div>
 
-      <div className="expense-list">
-        {trip.members.map((member) => (
-          <article className="expense-card" key={member.id}>
-            <div className="expense-card__content">
-              <h3 className="expense-card__title">
-                {member.displayName}
-              </h3>
-            </div>
-          </article>
-        ))}
-      </div>
+      <TripMemberList
+        members={trip.members}
+        ownerMemberId={trip.ownerMemberId}
+      />
 
       <div className="form-page__header">
         <h2>Add a Member</h2>

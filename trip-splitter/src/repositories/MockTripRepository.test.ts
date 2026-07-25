@@ -45,6 +45,7 @@ describe("MockTripRepository.getTrips", () => {
     const createdTrip = await repository.createTrip({
       name: "Detroit Weekend",
       currencyCode: "USD",
+      ownerDisplayName: "  Gwen  ",
     });
 
     const trips = await repository.getTrips();
@@ -52,6 +53,11 @@ describe("MockTripRepository.getTrips", () => {
     expect(trips).toContainEqual({
       trip: createdTrip,
       role: "owner",
+    });
+    expect(createdTrip.ownerMemberId).toBe("mock-owner");
+    expect(createdTrip.members).toContainEqual({
+      id: "mock-owner",
+      displayName: "Gwen",
     });
   });
 
@@ -104,6 +110,7 @@ describe("MockTripRepository.deleteTrip", () => {
     const otherTrip = await repository.createTrip({
       name: "Detroit Weekend",
       currencyCode: "USD",
+      ownerDisplayName: "Gwen",
     });
 
     await repository.deleteTrip("demo-trip");
@@ -114,6 +121,81 @@ describe("MockTripRepository.deleteTrip", () => {
       trip: otherTrip,
       role: "owner",
     });
+  });
+});
+
+describe("MockTripRepository.createTrip", () => {
+  it("creates a trimmed owner member linked by ownerMemberId", async () => {
+    const repository = new MockTripRepository({
+      currentUserId: "owner-user",
+    });
+
+    const trip = await repository.createTrip({
+      name: "Detroit Weekend",
+      currencyCode: "USD",
+      ownerDisplayName: "  gWeN Smith  ",
+    });
+    const ownerMember = trip.members.find(
+      (member) => member.id === trip.ownerMemberId,
+    );
+
+    expect(trip.ownerMemberId).toBe("owner-user");
+    expect(ownerMember).toEqual({
+      id: "owner-user",
+      displayName: "gWeN Smith",
+    });
+    expect(ownerMember?.displayName).not.toContain("(Owner)");
+    expect(ownerMember?.displayName).not.toBe("You");
+  });
+
+  it("rejects a blank owner name", async () => {
+    const repository = new MockTripRepository();
+
+    await expect(
+      repository.createTrip({
+        name: "Detroit Weekend",
+        currencyCode: "USD",
+        ownerDisplayName: " \t ",
+      }),
+    ).rejects.toThrow("Enter your name.");
+  });
+
+  it("returns cloned owner data", async () => {
+    const repository = new MockTripRepository();
+    const trip = await repository.createTrip({
+      name: "Detroit Weekend",
+      currencyCode: "USD",
+      ownerDisplayName: "Gwen",
+    });
+
+    trip.ownerMemberId = "changed";
+    trip.members[0].displayName = "Changed";
+
+    const listedTrip = (await repository.getTrips()).find(
+      (candidate) =>
+        candidate.trip.name === "Detroit Weekend",
+    )?.trip;
+
+    expect(listedTrip?.ownerMemberId).toBe("mock-owner");
+    expect(listedTrip?.members[0].displayName).toBe("Gwen");
+  });
+
+  it("seeds an explicit owner member ID", async () => {
+    const repository = new MockTripRepository();
+
+    const accessibleTrip =
+      await repository.getTrip("demo-trip");
+
+    expect(accessibleTrip?.trip.ownerMemberId).toBe(
+      "member-gwen",
+    );
+    expect(
+      accessibleTrip?.trip.members.some(
+        (member) =>
+          member.id ===
+          accessibleTrip.trip.ownerMemberId,
+      ),
+    ).toBe(true);
   });
 });
 
@@ -332,6 +414,9 @@ describe("MockTripRepository sharing", () => {
     expect(sharedTrip?.role).toBe("editor");
     expect(sharedTrip?.trip.members).toEqual(
       ownerTripBefore?.trip.members,
+    );
+    expect(sharedTrip?.trip.ownerMemberId).toBe(
+      ownerTripBefore?.trip.ownerMemberId,
     );
     await expect(
       collaborator.getTrips(),

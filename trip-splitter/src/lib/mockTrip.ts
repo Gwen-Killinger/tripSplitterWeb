@@ -4,6 +4,7 @@ export const mockTrip: Trip = {
   id: "demo-trip",
   name: "Chicago Weekend",
   currencyCode: "USD",
+  ownerMemberId: "member-gwen",
   members: [
     {
       id: "member-gwen",

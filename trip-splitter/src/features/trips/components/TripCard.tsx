@@ -28,7 +28,7 @@ export function TripCard({
         {trip.expenses.length === 1 ? "expense" : "expenses"}
       </span>
 
-      <span className="trip-list-card__role">
+      <span className="role-badge">
         {role === "owner" ? "Owned" : "Shared"}
       </span>
     </button>

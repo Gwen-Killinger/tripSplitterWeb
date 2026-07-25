@@ -45,11 +45,13 @@ service cloud.firestore {
           "name",
           "currencyCode",
           "ownerId",
+          "ownerMemberId",
           "createdAt"
         ])
         && request.resource.data.name is string
         && request.resource.data.currencyCode is string
         && request.resource.data.ownerId == request.auth.uid
+        && request.resource.data.ownerMemberId == request.auth.uid
         && request.resource.data.createdAt == request.time
         && getAfter(
           accessPath(request.auth.uid, tripId)
@@ -58,8 +60,17 @@ service cloud.firestore {
           accessPath(request.auth.uid, tripId)
         ).data.role == "owner"
         && getAfter(
-          memberPath(tripId, request.auth.uid)
-        ).data.displayName == "You";
+          memberPath(
+            tripId,
+            request.resource.data.ownerMemberId
+          )
+        ).data.displayName is string
+        && getAfter(
+          memberPath(
+            tripId,
+            request.resource.data.ownerMemberId
+          )
+        ).data.displayName.matches(".*\\S.*");
     }
 
     function validMemberWrite() {
@@ -69,8 +80,10 @@ service cloud.firestore {
 
     function validOwnerMemberBootstrap(tripId, memberId) {
       return request.auth.uid == memberId
-        && request.resource.data.displayName == "You"
-        && getAfter(tripPath(tripId)).data.ownerId == request.auth.uid;
+        && request.resource.data.displayName is string
+        && request.resource.data.displayName.matches(".*\\S.*")
+        && getAfter(tripPath(tripId)).data.ownerId == request.auth.uid
+        && getAfter(tripPath(tripId)).data.ownerMemberId == memberId;
     }
 
     function validInviteCreate(inviteHash) {

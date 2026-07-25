@@ -30,6 +30,7 @@ export type Trip = {
   id: string;
   name: string;
   currencyCode: string;
+  ownerMemberId: string;
   members: TripMember[];
   expenses: Expense[];
 };

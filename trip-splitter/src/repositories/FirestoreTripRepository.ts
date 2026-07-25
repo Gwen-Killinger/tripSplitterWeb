@@ -26,7 +26,9 @@ import type {
   TripMember,
   TripRole,
 } from "../domain/models";
+import { resolveOwnerMemberId } from "../domain/resolveOwnerMemberId";
 import { validateMemberDisplayName } from "../domain/validateMemberDisplayName";
+import { validateOwnerDisplayName } from "../domain/validateOwnerDisplayName";
 import {
   generateInviteToken,
   hashInviteToken,
@@ -185,11 +187,17 @@ export class FirestoreTripRepository
         };
       });
     const tripData = tripSnapshot.data();
+    const ownerMemberId = resolveOwnerMemberId(
+      tripData?.ownerMemberId,
+      tripData?.ownerId,
+      members,
+    );
 
     return {
       id: tripId,
       name: tripData?.name,
       currencyCode: tripData?.currencyCode,
+      ownerMemberId,
       members,
       expenses,
     };
@@ -279,6 +287,9 @@ export class FirestoreTripRepository
 
   async createTrip(input: CreateTripInput): Promise<Trip> {
     const currentUserId = this.getCurrentUserId();
+    const ownerDisplayName = validateOwnerDisplayName(
+      input.ownerDisplayName,
+    );
     const tripRef = doc(collection(this.db, "trips"));
     const batch = writeBatch(this.db);
 
@@ -286,6 +297,7 @@ export class FirestoreTripRepository
       name: input.name,
       currencyCode: input.currencyCode,
       ownerId: currentUserId,
+      ownerMemberId: currentUserId,
       createdAt: serverTimestamp(),
     });
     batch.set(
@@ -297,7 +309,7 @@ export class FirestoreTripRepository
         currentUserId,
       ),
       {
-        displayName: "You",
+        displayName: ownerDisplayName,
       },
     );
     batch.set(
@@ -321,10 +333,11 @@ export class FirestoreTripRepository
       id: tripRef.id,
       name: input.name,
       currencyCode: input.currencyCode,
+      ownerMemberId: currentUserId,
       members: [
         {
           id: currentUserId,
-          displayName: "You",
+          displayName: ownerDisplayName,
         },
       ],
       expenses: [],

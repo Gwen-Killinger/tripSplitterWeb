@@ -258,6 +258,7 @@ test("allows the exact new-trip creation batch", async () => {
     name: "New Trip",
     currencyCode: "USD",
     ownerId,
+    ownerMemberId: ownerId,
     createdAt: serverTimestamp(),
   });
   batch.set(
@@ -269,7 +270,7 @@ test("allows the exact new-trip creation batch", async () => {
       ownerId,
     ),
     {
-      displayName: "You",
+      displayName: "Gwen",
     },
   );
   batch.set(
@@ -288,6 +289,115 @@ test("allows the exact new-trip creation batch", async () => {
   );
 
   await assertSucceeds(batch.commit());
+});
+
+test("rejects malformed or incomplete new-trip bootstraps", async () => {
+  async function commitBootstrap({
+    newTripId,
+    ownerMemberId = ownerId,
+    displayName = "Gwen",
+    includeOwnerMember = true,
+  }) {
+    const db = authenticatedDb(ownerId);
+    const batch = writeBatch(db);
+
+    batch.set(doc(db, "trips", newTripId), {
+      name: "New Trip",
+      currencyCode: "USD",
+      ownerId,
+      ownerMemberId,
+      createdAt: serverTimestamp(),
+    });
+
+    if (includeOwnerMember) {
+      batch.set(
+        doc(
+          db,
+          "trips",
+          newTripId,
+          "members",
+          ownerMemberId,
+        ),
+        { displayName },
+      );
+    }
+
+    batch.set(
+      doc(
+        db,
+        "users",
+        ownerId,
+        "tripAccess",
+        newTripId,
+      ),
+      {
+        tripId: newTripId,
+        role: "owner",
+        grantedAt: serverTimestamp(),
+      },
+    );
+
+    return batch.commit();
+  }
+
+  await assertFails(
+    commitBootstrap({
+      newTripId: "wrong-owner-member",
+      ownerMemberId: "someone-else",
+    }),
+  );
+  await assertFails(
+    commitBootstrap({
+      newTripId: "missing-owner-member",
+      includeOwnerMember: false,
+    }),
+  );
+  await assertFails(
+    commitBootstrap({
+      newTripId: "blank-owner-name",
+      displayName: "   ",
+    }),
+  );
+
+  const db = authenticatedDb(ownerId);
+  const missingFieldBatch = writeBatch(db);
+  const missingFieldTripId = "missing-owner-member-id";
+
+  missingFieldBatch.set(
+    doc(db, "trips", missingFieldTripId),
+    {
+      name: "New Trip",
+      currencyCode: "USD",
+      ownerId,
+      createdAt: serverTimestamp(),
+    },
+  );
+  missingFieldBatch.set(
+    doc(
+      db,
+      "trips",
+      missingFieldTripId,
+      "members",
+      ownerId,
+    ),
+    { displayName: "Gwen" },
+  );
+  missingFieldBatch.set(
+    doc(
+      db,
+      "users",
+      ownerId,
+      "tripAccess",
+      missingFieldTripId,
+    ),
+    {
+      tripId: missingFieldTripId,
+      role: "owner",
+      grantedAt: serverTimestamp(),
+    },
+  );
+
+  await assertFails(missingFieldBatch.commit());
 });
 
 test("allows the owned-trip listing query", async () => {
