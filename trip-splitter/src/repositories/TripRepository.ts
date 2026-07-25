@@ -22,6 +22,8 @@ export interface TripRepository {
 
   createTrip(input: CreateTripInput): Promise<Trip>;
 
+  deleteTrip(tripId: string): Promise<void>;
+
   addMember(
     tripId: string,
     input: AddMemberInput,

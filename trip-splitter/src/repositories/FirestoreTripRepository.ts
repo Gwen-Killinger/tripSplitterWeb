@@ -11,6 +11,7 @@ import {
   deleteDoc,
   updateDoc,
   where,
+  writeBatch,
   type Firestore,
 } from "firebase/firestore";
 import type {
@@ -223,6 +224,82 @@ export class FirestoreTripRepository
       ],
       expenses: [],
     };
+  }
+
+  async deleteTrip(tripId: string): Promise<void> {
+    const currentUser = this.auth.currentUser;
+
+    if (currentUser === null) {
+      throw new Error("User is not authenticated.");
+    }
+
+    const tripRef = doc(this.db, "trips", tripId);
+    const tripSnapshot = await getDoc(tripRef);
+
+    if (!tripSnapshot.exists()) {
+      throw new Error(`Trip not found: ${tripId}`);
+    }
+
+    if (tripSnapshot.data().ownerId !== currentUser.uid) {
+      throw new Error(
+        "User is not authorized to delete this trip.",
+      );
+    }
+
+    const membersRef = collection(
+      this.db,
+      "trips",
+      tripId,
+      "members",
+    );
+    const expensesRef = collection(
+      this.db,
+      "trips",
+      tripId,
+      "expenses",
+    );
+
+    const [membersSnapshot, expensesSnapshot] =
+      await Promise.all([
+        getDocs(membersRef),
+        getDocs(expensesRef),
+      ]);
+
+    const childDocuments = [
+      ...membersSnapshot.docs,
+      ...expensesSnapshot.docs,
+    ];
+
+    let childIndex = 0;
+
+    while (
+      childDocuments.length - childIndex > 499
+    ) {
+      const childBatch = writeBatch(this.db);
+      const batchEnd = Math.min(
+        childIndex + 500,
+        childDocuments.length,
+      );
+
+      for (; childIndex < batchEnd; childIndex++) {
+        childBatch.delete(childDocuments[childIndex].ref);
+      }
+
+      await childBatch.commit();
+    }
+
+    const finalBatch = writeBatch(this.db);
+
+    for (
+      ;
+      childIndex < childDocuments.length;
+      childIndex++
+    ) {
+      finalBatch.delete(childDocuments[childIndex].ref);
+    }
+
+    finalBatch.delete(tripRef);
+    await finalBatch.commit();
   }
 
   async addMember(

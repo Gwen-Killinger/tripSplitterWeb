@@ -148,6 +148,72 @@
   font-size: 0.875rem;
 }
 
+.danger-zone {
+  margin-top: 3rem;
+  padding: 1.25rem;
+  border: 1px solid #fecaca;
+  border-radius: 0.875rem;
+  background: #fff7f7;
+}
+
+.danger-zone h2,
+.delete-trip-confirmation h3 {
+  margin-bottom: 0.5rem;
+  color: #991b1b;
+}
+
+.danger-zone > p,
+.delete-trip-confirmation > p {
+  color: #7f1d1d;
+}
+
+.delete-trip-confirmation {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #fecaca;
+}
+
+.delete-trip-confirmation__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.danger-button,
+.secondary-button {
+  min-height: 2.75rem;
+  padding: 0.625rem 1rem;
+  border-radius: 0.625rem;
+  font-weight: 700;
+}
+
+.danger-button {
+  border: 1px solid #b91c1c;
+  background: #b91c1c;
+  color: #ffffff;
+}
+
+.danger-button:hover:not(:disabled) {
+  background: #991b1b;
+}
+
+.secondary-button {
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #334155;
+}
+
+.secondary-button:hover:not(:disabled) {
+  background: #f1f5f9;
+}
+
+.danger-button:disabled,
+.secondary-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
 @media (max-width: 40rem) {
   .app-navigation__link:first-child {
     display: none;
@@ -160,6 +226,11 @@
   .trip-list-header {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .delete-trip-confirmation__actions {
+    align-items: stretch;
+    flex-direction: column-reverse;
   }
 }
 

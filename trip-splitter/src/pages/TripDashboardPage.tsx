@@ -2,9 +2,13 @@ import {
   Link,
   NavLink,
   Outlet,
+  useNavigate,
   useParams,
 } from "react-router";
+import { useRef, useState } from "react";
+import { DeleteTripConfirmation } from "../features/trips/components/DeleteTripConfirmation";
 import { useTrip } from "../features/trips/hooks/useTrip";
+import { tripRepository } from "../repositories/repositoryInstance";
 
 function getTripNavigationClassName({
   isActive,
@@ -20,8 +24,38 @@ function getTripNavigationClassName({
 }
 
 export function TripDashboardPage() {
+  const navigate = useNavigate();
   const { tripId } = useParams();
   const { trip, isLoading, error, reload } = useTrip(tripId);
+  const [isConfirmingDelete, setIsConfirmingDelete] =
+    useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] =
+    useState<string | null>(null);
+  const isDeletingRef = useRef(false);
+
+  async function handleDeleteTrip(): Promise<void> {
+    if (!trip || isDeletingRef.current) {
+      return;
+    }
+
+    isDeletingRef.current = true;
+    setIsDeleting(true);
+    setDeleteError(null);
+
+    try {
+      await tripRepository.deleteTrip(trip.id);
+      navigate("/trips", { replace: true });
+    } catch (caughtError) {
+      console.error("Unable to delete trip:", caughtError);
+      setDeleteError(
+        "Unable to delete the trip. Please try again.",
+      );
+    } finally {
+      isDeletingRef.current = false;
+      setIsDeleting(false);
+    }
+  }
 
   if (isLoading) {
     return <p>Loading trip...</p>;
@@ -93,6 +127,40 @@ export function TripDashboardPage() {
       </nav>
 
       <Outlet context={{ trip, reload }} />
+
+      <section className="danger-zone">
+        <h2>Danger Zone</h2>
+        <p>
+          Permanently delete this trip and all of its data.
+        </p>
+
+        {isConfirmingDelete ? (
+          <DeleteTripConfirmation
+            tripName={trip.name}
+            isDeleting={isDeleting}
+            error={deleteError}
+            onCancel={() => {
+              setIsConfirmingDelete(false);
+              setDeleteError(null);
+            }}
+            onConfirm={() => {
+              void handleDeleteTrip();
+            }}
+          />
+        ) : (
+          <button
+            className="danger-button"
+            type="button"
+            disabled={isDeleting}
+            onClick={() => {
+              setIsConfirmingDelete(true);
+              setDeleteError(null);
+            }}
+          >
+            Delete Trip
+          </button>
+        )}
+      </section>
     </div>
   );
 }

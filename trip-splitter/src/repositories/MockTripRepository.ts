@@ -46,6 +46,14 @@ export class MockTripRepository implements TripRepository {
     return cloneTrip(trip);
   }
 
+  async deleteTrip(tripId: string): Promise<void> {
+    if (!this.trips.has(tripId)) {
+      throw new Error(`Trip not found: ${tripId}`);
+    }
+
+    this.trips.delete(tripId);
+  }
+
   async addMember(
     tripId: string,
     input: AddMemberInput,

@@ -57,6 +57,50 @@ describe("MockTripRepository.getTrips", () => {
   });
 });
 
+describe("MockTripRepository.deleteTrip", () => {
+  it("deletes an existing trip and its aggregate", async () => {
+    const repository = new MockTripRepository();
+    const tripBefore = await repository.getTrip("demo-trip");
+
+    expect(tripBefore?.members.length).toBeGreaterThan(0);
+    expect(tripBefore?.expenses.length).toBeGreaterThan(0);
+
+    await repository.deleteTrip("demo-trip");
+
+    await expect(
+      repository.getTrip("demo-trip"),
+    ).resolves.toBeNull();
+
+    const trips = await repository.getTrips();
+
+    expect(
+      trips.some((trip) => trip.id === "demo-trip"),
+    ).toBe(false);
+  });
+
+  it("rejects deleting a missing trip", async () => {
+    const repository = new MockTripRepository();
+
+    await expect(
+      repository.deleteTrip("missing-trip"),
+    ).rejects.toThrow("Trip not found: missing-trip");
+  });
+
+  it("leaves another trip unchanged", async () => {
+    const repository = new MockTripRepository();
+    const otherTrip = await repository.createTrip({
+      name: "Detroit Weekend",
+      currencyCode: "USD",
+    });
+
+    await repository.deleteTrip("demo-trip");
+
+    await expect(
+      repository.getTrip(otherTrip.id),
+    ).resolves.toEqual(otherTrip);
+  });
+});
+
 describe("MockTripRepository.addMember", () => {
   it("adds and returns a member with a generated ID", async () => {
     const repository = new MockTripRepository();

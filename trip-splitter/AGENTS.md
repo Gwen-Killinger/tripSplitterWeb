@@ -380,6 +380,7 @@ Implemented:
 - Trip creation
 - Trip loading
 - Trip listing
+- Trip deletion
 - Expense creation
 - Expense editing
 - Expense deletion
@@ -460,5 +461,6 @@ document and its member and expense subcollections.
 - calculateBalances
 - calculateSettlements
 - MockTripRepository.getTrips
+- MockTripRepository.deleteTrip
 
 Repository, routing, UI, and Firebase behavior currently have little or no automated test coverage.
